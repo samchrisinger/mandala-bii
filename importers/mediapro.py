@@ -42,4 +42,7 @@ class MPImporter(base.Importer):
       }
       import ipdb; ipdb.set_trace()
       filepath = self._find_file(doc['Filename']['value'])
+      if filepath is None:
+        # TODO logging
+        continue
       self._do_import(doc, filepath)
