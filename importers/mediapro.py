@@ -26,7 +26,7 @@ class MPImporter(base.Importer):
     data = {
       'meta': doc
     }
-    res = requests.post(self.URL, files=files, headers=headers, data=data)
+    res = requests.post(self.URL, files=files, headers=headers, data=data, verify=False)
     import ipdb; ipdb.set_trace()
 
   def run(self):
@@ -40,9 +40,11 @@ class MPImporter(base.Importer):
         }
         for child in item.getchildren() for entry in child.getchildren()
       }
-      import ipdb; ipdb.set_trace()
       filepath = self._find_file(doc['Filename']['value'])
       if filepath is None:
         # TODO logging
         continue
+      jp2path = os.path.splitext(filepath) + '.jp2'
+      if os.path.isfile(jp2path):
+        filepath = jp2path
       self._do_import(doc, filepath)
