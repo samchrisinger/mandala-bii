@@ -9,9 +9,10 @@ parser.add_argument('-x', '--xml',
                     help='If importing from MediaPro, the path to the XML catalog file.')
 parser.add_argument('-i', '--images_path', required=True,
                     help='The path to stored images. This script will automatically search for a file in subdirectories, so this should be the root folder to search from.')
+parser.add_argument('-u', '--url', required=True,
+                    help='The URL to import to.')
 parser.add_argument('-c', '--cookie', required=True,
                     help='The Cookie header to pass to the Drupal server.')
-
 args = parser.parse_args();
 
 
@@ -27,6 +28,7 @@ if __name__ == '__main__':
       exit
     else:
       importer = mediapro.MPImporter(
+        url=args.url,
         cookie=args.cookie,
         images_path=args.images_path,
         xml_path=args.xml

@@ -6,8 +6,8 @@ from . import base
 
 class MPImporter(base.Importer):
 
-  def __init__(self, cookie, images_path, xml_path):
-    super().__init__(cookie, images_path)
+  def __init__(self, url, cookie, images_path, xml_path):
+    super().__init__(url, cookie, images_path)
     self.xml_path = xml_path
 
   def _find_file(self, filename):
@@ -26,7 +26,7 @@ class MPImporter(base.Importer):
     data = {
       'meta': doc
     }
-    res = requests.post(self.URL, files=files, headers=headers, data=data, verify=False)
+    res = requests.post(self.url, files=files, headers=headers, data=data, verify=False)
     import ipdb; ipdb.set_trace()
 
   def run(self):
@@ -44,7 +44,7 @@ class MPImporter(base.Importer):
       if filepath is None:
         # TODO logging
         continue
-      jp2path = os.path.splitext(filepath) + '.jp2'
+      jp2path = os.path.splitext(filepath)[0] + '.jp2'
       if os.path.isfile(jp2path):
         filepath = jp2path
       self._do_import(doc, filepath)
