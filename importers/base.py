@@ -13,7 +13,7 @@ class Importer(object):
     }
     res = requests.get(self.url, headers=headers, params={
       'filename': filename
-    })
+    }, verify=False)
     if res.status_code == requests.codes.ok:
       res_json = res.json()
       if res_json['node_id'] and (res_json['image_linked'] == "1"):
