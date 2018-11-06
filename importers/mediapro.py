@@ -17,27 +17,13 @@ class MPImporter(base.Importer):
           return os.path.join(root, name)
 
   def _remap_fields(self, doc):
-    doc['OrganizationName'] = {
-      'value': doc.get('UserField_1')
-    }
-    doc['ProjectName'] = {
-      'value': doc.get('UserField_2')
-    }
-    doc['SponsorName'] = {
-      'value': doc.get('UserField_3')
-    }
-    doc['Title'] = {
-      'value': doc.get('UserField_4', 'Untitled')
-    }
-    doc['SpotFeature'] = {
-      'value': doc.get('UserField_5')
-    }
-    doc['GeneralNote'] = {
-      'value': doc.get('UserField_6')
-    }
-    doc['PrivateNote'] = {
-      'value': doc.get('UserField_7')
-    }
+    doc['OrganizationName'] = doc.get('UserField_1')
+    doc['ProjectName'] = doc.get('UserField_2')
+    doc['SponsorName'] = doc.get('UserField_3')
+    doc['Title'] = doc.get('UserField_4', 'Untitled')
+    doc['SpotFeature'] = doc.get('UserField_5')
+    doc['GeneralNote'] = doc.get('UserField_6')
+    doc['PrivateNote'] = doc.get('UserField_7')
 
   def _do_import(self, doc, filepath):
     import ipdb; ipdb.set_trace()
