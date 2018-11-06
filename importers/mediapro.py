@@ -1,4 +1,4 @@
-2567.import os
+import os
 import requests
 import xml.etree.ElementTree as ET
 
@@ -84,7 +84,7 @@ class MPImporter(base.Importer):
       if os.path.isfile(jp2path):
         self._log('debug', 'Importing converted jp2 version of "{}".'.format(filename))
         filepath = jp2path
-      elif convert and (filename.lower() in ('.raf', 'nef')):
+      elif self.convert and (filename.lower() in ('.raf', 'nef')):
         self._log('debug', 'Converting {} to jp2.'.format(filename))
         converted = self._convert_file(filepath)
         if converted:
