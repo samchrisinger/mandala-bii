@@ -16,22 +16,45 @@ class MPImporter(base.Importer):
         if name == filename:
           return os.path.join(root, name)
 
+  def _remap_fields(self, doc):
+    doc['OrganizationName'] = {
+      'value': doc.get('UserField_1')
+    }
+    doc['ProjectName'] = {
+      'value': doc.get('UserField_2')
+    }
+    doc['SponsorName'] = {
+      'value': doc.get('UserField_3')
+    }
+    doc['Title'] = {
+      'value': doc.get('UserField_4', 'Untitled')
+    }
+    doc['SpotFeature'] = {
+      'value': doc.get('UserField_5')
+    }
+    doc['GeneralNote'] = {
+      'value': doc.get('UserField_6')
+    }
+    doc['PrivateNote'] = {
+      'value': doc.get('UserField_7')
+    }
+
   def _do_import(self, doc, filepath):
+    import ipdb; ipdb.set_trace()
     files = {
       'file': open(filepath, 'rb')
     }
     headers = {
       'Cookie': self.cookie
     }
-    data = {
-      'meta': doc
-    }
-    res = requests.post(self.url, files=files, headers=headers, data=data, verify=False)
-    import ipdb; ipdb.set_trace()
+    res = requests.post(self.url, files=files, headers=headers, data={
+      key:d['value']
+    for key, d in doc.items()}, verify=False)
 
   def run(self):
     xml = ET.parse(self.xml_path)
     root = xml.getroot()
+    catalog = root.find('Catalog').text
     for item in root.iter('MediaItem'):
       doc = {
         entry.tag: {
@@ -40,6 +63,10 @@ class MPImporter(base.Importer):
         }
         for child in item.getchildren() for entry in child.getchildren()
       }
+      doc['Catalog'] = {
+        'value': catalog
+      }
+      self._remap_fields(doc)
       filepath = self._find_file(doc['Filename']['value'])
       if filepath is None:
         # TODO logging
