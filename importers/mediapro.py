@@ -35,7 +35,8 @@ class MPImporter(base.Importer):
     }
     res = requests.post(self.url, files=files, headers=headers, data={
       key:d['value']
-    for key, d in doc.items()}, verify=False)
+      for key, d in doc.items() if key and d
+    }, verify=False)
 
   def run(self):
     xml = ET.parse(self.xml_path)
