@@ -61,7 +61,10 @@ class Importer(object):
       return False
 
   def _cleanup(self):
-    shutil.rmtree('./tmp')
+    try:
+      shutil.rmtree('./tmp')
+    except FileNotFoundError:
+      pass
 
   def run(self):
     pass

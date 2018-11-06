@@ -92,4 +92,4 @@ class MPImporter(base.Importer):
         else:
           self._log('debug', 'Failed to convert "{}" to jp2.'.format(filename))
       self._do_import(doc, filepath)
-      self._cleanup()
+    self._cleanup()
