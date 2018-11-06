@@ -15,13 +15,11 @@ parser.add_argument('-c', '--cookie', required=True,
                     help='The Cookie header to pass to the Drupal server.')
 parser.add_argument('-cid', '--collection_id',
                     help='The Collection ID to import into.')
+parser.add_argument('-l', '--logfile', default=None,
+                    help='Log progress to a file.')
+parser.add_argument('-v', '--verbose', default=False,
+                    help='Prints progress to stdout.')
 args = parser.parse_args();
-
-
-def do_import():
-  headers= {
-    'Cookie': 'foo'
-  }
 
 if __name__ == '__main__':
   if args.source == 'MediaPro':
@@ -35,6 +33,8 @@ if __name__ == '__main__':
         images_path=args.images_path,
         xml_path=args.xml,
         collection_id=args.collection_id
+        logfile=args.logfile,
+        verbose=args.verbose,
       )
       importer.run()
   elif args.source == 'Encoded':

@@ -6,8 +6,8 @@ from . import base
 
 class MPImporter(base.Importer):
 
-  def __init__(self, url, cookie, images_path, xml_path, collection_id=None):
-    super().__init__(url, cookie, images_path)
+  def __init__(self, url, cookie, images_path, xml_path, collection_id=None, *args, **kwargs):
+    super().__init__(url, cookie, images_path, *args, **kwargs)
     self.xml_path = xml_path
     self.collection_id = collection_id or '0'
 
@@ -37,12 +37,27 @@ class MPImporter(base.Importer):
       key:d['value']
       for key, d in doc.items() if key and d
     }, verify=False)
+    if res.status_code != requests.codes.ok:
+      self._log('warning', 'Non-200 status returned from POST for "{}". Code was {}.'.format(
+        doc['Filename'],
+        res.status_code
+      ))
+    else:
+      self._log('info', '200 status returned from POST for "{}". Payload: {}.'.format(
+        doc['Filename'],
+        res.text
+      ))
 
   def run(self):
     xml = ET.parse(self.xml_path)
     root = xml.getroot()
     catalog = root.find('Catalog').text
-    for item in root.iter('MediaItem'):
+    items = [i for i in root.iter('MediaItem')]
+    total = len(items)
+    i = 0
+    for item in items:
+      self.log('info', 'Attempting to import {} of {}.'.format(i, total))
+      i += 1
       doc = {
         entry.tag: {
           'value': (entry.text or '').strip('\n').strip(),
@@ -61,9 +76,10 @@ class MPImporter(base.Importer):
         continue
       filepath = self._find_file(doc['Filename']['value'])
       if filepath is None:
-        # TODO logging
+        self._log('warning', 'File "{}" not found.'.format(filename))
         continue
       jp2path = os.path.splitext(filepath)[0] + '.jp2'
       if os.path.isfile(jp2path):
+        self._log('debug', 'Importing converted jp2 version of "{}".'.format(filename))
         filepath = jp2path
       self._do_import(doc, filepath)
