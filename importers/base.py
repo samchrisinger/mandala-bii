@@ -1,3 +1,4 @@
+import json
 import requests
 import logging
 
@@ -29,7 +30,10 @@ class Importer(object):
       'filename': filename
     }, verify=False)
     if res.status_code == requests.codes.ok:
-      res_json = res.json()
+      try:
+        res_json = res.json()
+      except json.decoder.JSONDecodeError as e:
+        self._log('warning', 'Non-json response body from GET. Response: {}'.format(res.text))
       if res_json['node_id'] and (res_json['image_linked'] == "1"):
         self._log('info', 'File {} skipped because it has already been imported.'.format(filename))
         return True
