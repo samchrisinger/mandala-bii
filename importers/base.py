@@ -39,6 +39,7 @@ class Importer(object):
         res_json = res.json()
       except json.decoder.JSONDecodeError as e:
         self._log('warning', 'Non-json response body from GET. Response: {}'.format(res.text))
+        return False
       if res_json['node_id'] and (res_json['image_linked'] == "1"):
         self._log('info', 'File {} skipped because it has already been imported.'.format(filename))
         return True
