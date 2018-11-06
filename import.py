@@ -17,9 +17,9 @@ parser.add_argument('-cid', '--collection_id',
                     help='The Collection ID to import into.')
 parser.add_argument('-l', '--logfile', default=None,
                     help='Log progress to a file.')
-parser.add_argument('-v', '--verbose', default=False,
+parser.add_argument('-v', '--verbose', default=False, action='store_true',
                     help='Prints progress to stdout.')
-parser.add_argument('-cv', '--convert', default=True,
+parser.add_argument('-cv', '--convert', default=True, action='store_true',
                     help='Convert RAW files to jp2 before upload?')
 args = parser.parse_args();
 
