@@ -6,9 +6,10 @@ from . import base
 
 class MPImporter(base.Importer):
 
-  def __init__(self, url, cookie, images_path, xml_path):
+  def __init__(self, url, cookie, images_path, xml_path, collection_id=None):
     super().__init__(url, cookie, images_path)
     self.xml_path = xml_path
+    self.collection_id = collection_id or '0'
 
   def _find_file(self, filename):
     for root, dirs, files in os.walk(self.images_path):
@@ -53,11 +54,9 @@ class MPImporter(base.Importer):
         'value': catalog
       }
       self._remap_fields(doc)
-      import ipdb; ipdb.set_trace()
+      doc['CollectionId'] =  self.collection_id
       if self._already_imported(doc['Filename']['value']):
         continue
-      filepath = None
-      '''
       filepath = self._find_file(doc['Filename']['value'])
       if filepath is None:
         # TODO logging

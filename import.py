@@ -13,6 +13,8 @@ parser.add_argument('-u', '--url', required=True,
                     help='The URL to import to.')
 parser.add_argument('-c', '--cookie', required=True,
                     help='The Cookie header to pass to the Drupal server.')
+parser.add_argument('-cid', '--collection_id',
+                    help='The Collection ID to import into.')
 args = parser.parse_args();
 
 
@@ -31,7 +33,8 @@ if __name__ == '__main__':
         url=args.url,
         cookie=args.cookie,
         images_path=args.images_path,
-        xml_path=args.xml
+        xml_path=args.xml,
+        collection_id=args.collection_id
       )
       importer.run()
   elif args.source == 'Encoded':
