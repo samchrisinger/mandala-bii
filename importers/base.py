@@ -1,4 +1,5 @@
 import json
+import shutil
 import requests
 import logging
 import os
@@ -47,13 +48,20 @@ class Importer(object):
 
   def _convert_file(self, filepath):
     try:
+      os.mkdir('./tmp')
+    except OSError:
+      pass
+    try:
       with rawpy.imread(filepath) as raw:
         rgb = raw.postprocess()
-        base = os.path.splitext(filepath)[0]
-        imageio.imsave(base + '.jp2', rgb)
+        base = os.path.splitext(os.path.basename(filepath))[0]
+        imageio.imsave('./tmp/' + base + '.jp2', rgb)
         return True
     except Exception as e:
       return False
+
+  def _cleanup(self):
+    shutil.rmtree('./tmp')
 
   def run(self):
     pass
