@@ -1,6 +1,10 @@
 import json
 import requests
 import logging
+import os
+import rawpy
+import imageio
+
 
 class Importer(object):
 
@@ -12,6 +16,7 @@ class Importer(object):
     if self.logfile:
       logging.basicConfig(filename=self.logfile)
     self.verbose = kwargs.get('verbose', False)
+    self.convert = kwargs.get('convert', True)
 
   def _log(self, level, msg):
     if self.vebose:
@@ -38,6 +43,16 @@ class Importer(object):
         self._log('info', 'File {} skipped because it has already been imported.'.format(filename))
         return True
     return False
+
+  def _convert_file(self, filepath):
+    try:
+      with rawpy.imread(filepath) as raw:
+        rgb = raw.postprocess()
+        base = os.path.splitext(filepath)[0]
+        imageio.imsave(base + '.jp2', rgb)
+        return True
+    except Exception as e:
+      return False
 
   def run(self):
     pass

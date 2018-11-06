@@ -72,14 +72,22 @@ class MPImporter(base.Importer):
       doc['CollectionId'] =  {
         'value': self.collection_id
       }
-      if self._already_imported(doc['Filename']['value']):
+      filename = doc['Filename']['value']
+      if self._already_imported(filename):
         continue
-      filepath = self._find_file(doc['Filename']['value'])
+      filepath = self._find_file(filename)
       if filepath is None:
         self._log('warning', 'File "{}" not found.'.format(filename))
         continue
       jp2path = os.path.splitext(filepath)[0] + '.jp2'
+      ext = os.path.splitext(filepath)[-1]
       if os.path.isfile(jp2path):
         self._log('debug', 'Importing converted jp2 version of "{}".'.format(filename))
         filepath = jp2path
+      elif convert and (filename.lower() in ('.raf', 'nef')):
+        converted = self._convert_file(filepath)
+        if converted:
+          filepath = jp2path
+        else:
+          self._log('debug', 'Failed to convert "{}" to jp2.'.format(filename))
       self._do_import(doc, filepath)

@@ -19,6 +19,8 @@ parser.add_argument('-l', '--logfile', default=None,
                     help='Log progress to a file.')
 parser.add_argument('-v', '--verbose', default=False,
                     help='Prints progress to stdout.')
+parser.add_argument('-cv', '--convert', default=True,
+                    help='Convert RAW files to jp2 before upload?')
 args = parser.parse_args();
 
 if __name__ == '__main__':
@@ -32,9 +34,10 @@ if __name__ == '__main__':
         cookie=args.cookie,
         images_path=args.images_path,
         xml_path=args.xml,
-        collection_id=args.collection_id
+        collection_id=args.collection_id,
         logfile=args.logfile,
         verbose=args.verbose,
+        convert=args.convert
       )
       importer.run()
   elif args.source == 'Encoded':
