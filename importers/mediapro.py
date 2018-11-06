@@ -1,4 +1,4 @@
-import os
+\import os
 import requests
 import xml.etree.ElementTree as ET
 
@@ -56,7 +56,7 @@ class MPImporter(base.Importer):
     total = len(items)
     i = 0
     for item in items:
-      self.log('info', 'Attempting to import {} of {}.'.format(i, total))
+      self._log('info', 'Attempting to import {} of {}.'.format(i, total))
       i += 1
       doc = {
         entry.tag: {
