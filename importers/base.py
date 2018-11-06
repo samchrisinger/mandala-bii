@@ -19,7 +19,7 @@ class Importer(object):
     self.convert = kwargs.get('convert', True)
 
   def _log(self, level, msg):
-    if self.vebose:
+    if self.verbose:
       print(msg)
     if self.logfile:
       if not level in ('info', 'debug', 'warning'):
