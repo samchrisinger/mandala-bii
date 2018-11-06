@@ -54,7 +54,9 @@ class MPImporter(base.Importer):
         'value': catalog
       }
       self._remap_fields(doc)
-      doc['CollectionId'] =  self.collection_id
+      doc['CollectionId'] =  {
+        'value': self.collection_id
+      }
       if self._already_imported(doc['Filename']['value']):
         continue
       filepath = self._find_file(doc['Filename']['value'])
