@@ -26,7 +26,6 @@ class MPImporter(base.Importer):
     doc['PrivateNote'] = doc.get('UserField_7')
 
   def _do_import(self, doc, filepath):
-    import ipdb; ipdb.set_trace()
     files = {
       'file': open(filepath, 'rb')
     }
@@ -54,6 +53,11 @@ class MPImporter(base.Importer):
         'value': catalog
       }
       self._remap_fields(doc)
+      import ipdb; ipdb.set_trace()
+      if self._already_imported(doc['Filename']['value']):
+        continue
+      filepath = None
+      '''
       filepath = self._find_file(doc['Filename']['value'])
       if filepath is None:
         # TODO logging
