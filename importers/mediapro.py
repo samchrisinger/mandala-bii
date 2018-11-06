@@ -42,6 +42,9 @@ class MPImporter(base.Importer):
         doc['Filename'],
         res.status_code
       ))
+      if res.status_code == requests.codes.forbidden:
+        self._log('debug', 'Forbidden response from POST to server. Likely the cookie is expired, so the script will exit.')
+        exit()
     else:
       self._log('info', '200 status returned from POST for "{}". Payload: {}.'.format(
         doc['Filename'],
