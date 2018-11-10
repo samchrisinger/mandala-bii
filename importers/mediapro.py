@@ -52,8 +52,12 @@ class MPImporter(base.Importer):
       ))
 
   def run(self):
-    xml = ET.parse(self.xml_path)
-    root = xml.getroot()
+    root = None
+    try:
+      xml = ET.parse(self.xml_path)
+      root = xml.getroot()
+    except ET.ParseError:
+      root = ET.fromstring(open(self.xml_path, 'rb').read().decode('utf-8', errors='ignore'))
     catalog = root.find('Catalog').text
     items = [i for i in root.iter('MediaItem')]
     total = len(items)
