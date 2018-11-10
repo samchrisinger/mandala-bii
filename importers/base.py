@@ -5,7 +5,7 @@ import logging
 import os
 import rawpy
 import imageio
-
+from subprocess import call
 
 class Importer(object):
 
@@ -18,6 +18,7 @@ class Importer(object):
       logging.basicConfig(filename=self.logfile)
     self.verbose = kwargs.get('verbose', False)
     self.convert = kwargs.get('convert', True)
+    self.convert_with = kwargs.get('convert_with', 'Python')
 
   def _log(self, level, msg):
     if self.verbose:
@@ -46,7 +47,7 @@ class Importer(object):
         return True
     return False
 
-  def _convert_file(self, filepath):
+  def _convert_file_py(self, filepath):
     try:
       os.mkdir('./tmp')
     except OSError:
@@ -59,6 +60,21 @@ class Importer(object):
         return True
     except Exception as e:
       return False
+
+  def _convert_file_imagemagick(self, filepath):
+    base = os.path.splitext(os.path.basename(filepath))[0]
+    ret = call('convert {} {}.jp2'.format(filepath, base))
+    if ret != 0:
+      return call('dcraw -c -w -T {} | convert - ./tmp/{}.jp2'.format(filepath, base))
+    else:
+      return True
+
+  def _convert_file(self, filepath):
+    if self.convert_with == 'Python':
+      return self._convert_file_py(filepath)
+    elif self.convert_with == 'ImageMagick':
+      return self._convert_file_imagemagick(filepath)
+    return False
 
   def _cleanup(self):
     try:

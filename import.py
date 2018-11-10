@@ -21,6 +21,8 @@ parser.add_argument('-v', '--verbose', default=False, action='store_true',
                     help='Prints progress to stdout.')
 parser.add_argument('-cv', '--convert', default=True, action='store_true',
                     help='Convert RAW files to jp2 before upload?')
+parser.add_argument('-cw', '--convert_with', default='Python', choices=['Python', 'ImageMagick'],
+                    help='Convert with Python or ImageMagick?')
 args = parser.parse_args();
 
 if __name__ == '__main__':
@@ -37,7 +39,8 @@ if __name__ == '__main__':
         collection_id=args.collection_id,
         logfile=args.logfile,
         verbose=args.verbose,
-        convert=args.convert
+        convert=args.convert,
+        convert_with=args.convert_with
       )
       importer.run()
   elif args.source == 'Encoded':
