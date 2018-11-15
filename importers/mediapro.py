@@ -89,7 +89,6 @@ class MPImporter(base.Importer):
     self._do_import(doc, filepath)
 
   def run(self):
-    import ipdb; ipdb.set_trace()
     root = None
     try:
       xml = ET.parse(self.xml_path)
