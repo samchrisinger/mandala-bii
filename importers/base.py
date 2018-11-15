@@ -63,25 +63,30 @@ class Importer(object):
       with rawpy.imread(filepath) as raw:
         rgb = raw.postprocess()
         base = os.path.splitext(os.path.basename(filepath))[0]
-        imageio.imsave('./tmp/' + base + '.jp2', rgb)
-        return True
+        cvpath = './tmp/' + base + '.jp2'
+        imageio.imsave(cvpath, rgb)
+        return cvpath
     except Exception as e:
-      return False
+      return None
 
   def _convert_file_imagemagick(self, filepath):
     base = os.path.splitext(os.path.basename(filepath))[0]
     ret = call('convert {} {}.jp2'.format(filepath, base))
     if ret != 0:
-      return call('dcraw -c -w -T {} | convert - ./tmp/{}.jp2'.format(filepath, base))
+      cvpath = './tmp/{}.jp2'.format(base)
+      if not call('dcraw -c -w -T {} | convert - {}'.format(filepath, cvpath)):
+        return cvpath
+      else:
+        return None
     else:
-      return True
+      return None
 
   def _convert_file(self, filepath):
     if self.convert_with == 'Python':
       return self._convert_file_py(filepath)
     elif self.convert_with == 'ImageMagick':
       return self._convert_file_imagemagick(filepath)
-    return False
+    return None
 
   def _cleanup(self):
     try:
