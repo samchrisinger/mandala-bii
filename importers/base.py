@@ -7,6 +7,9 @@ import rawpy
 import imageio
 from subprocess import call
 
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 class Importer(object):
 
   def __init__(self, url, cookie, images_path, *args, **kwargs):
@@ -42,7 +45,7 @@ class Importer(object):
       except json.decoder.JSONDecodeError as e:
         self._log('warning', 'Non-json response body from GET. Response: {}'.format(res.text))
         return False
-      if res_json['node_id'] and (res_json['image_linked'] == "1"):
+      if len(res_json) and res_json['node_id'] and (res_json['image_linked'] == "1"):
         self._log('info', 'File {} skipped because it has already been imported.'.format(filename))
         return True
     return False
