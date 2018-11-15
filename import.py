@@ -23,6 +23,10 @@ parser.add_argument('-cv', '--convert', default=True, action='store_true',
                     help='Convert RAW files to jp2 before upload?')
 parser.add_argument('-cw', '--convert_with', default='Python', choices=['Python', 'ImageMagick'],
                     help='Convert with Python or ImageMagick?')
+parser.add_argument('-fn', '--filename', default=None,
+                    help='Find and convert a specific import by filename')
+parser.add_argument('--force', default=False, action='store_true',
+                    help='Force import even if already imported.')
 args = parser.parse_args();
 
 if __name__ == '__main__':
@@ -40,7 +44,9 @@ if __name__ == '__main__':
         logfile=args.logfile,
         verbose=args.verbose,
         convert=args.convert,
-        convert_with=args.convert_with
+        convert_with=args.convert_with,
+        filename=args.filename,
+        force=args.force
       )
       importer.run()
   elif args.source == 'Encoded':
