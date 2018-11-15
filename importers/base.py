@@ -22,6 +22,8 @@ class Importer(object):
     self.verbose = kwargs.get('verbose', False)
     self.convert = kwargs.get('convert', True)
     self.convert_with = kwargs.get('convert_with', 'Python')
+    self.filename = kwargs.get('filename')
+    self.force = kwargs.get('force', False)
 
   def _log(self, level, msg):
     if self.verbose:
@@ -33,6 +35,8 @@ class Importer(object):
         getattr(logging, level)(msg)
 
   def _already_imported(self, filename):
+    if self.force:
+      return False
     headers = {
       'Cookie': self.cookie
     }
