@@ -5,7 +5,7 @@
 - virtualenv (reccomended)
 
 ## Install
--   `pip install -r requirements.txt
+-   `pip install -r requirements.txt`
 
 ## Running 
 Run `python convert.py` for a full list of supported arguments. In general the process is as follows:
