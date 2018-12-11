@@ -8,7 +8,7 @@
 -   `pip install -r requirements.txt`
 
 ## Running 
-Run `python convert.py` for a full list of supported arguments. In general the process is as follows:
+Run `python convert.py -h` for a full list of supported arguments. In general the process is as follows:
 - Make sure the set of image files to be imported is readable on your system. Box.com folders can be mounted on most OSes with relative ease.
 - Run:
 ```
