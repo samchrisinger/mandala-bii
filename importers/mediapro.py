@@ -41,9 +41,13 @@ class MPImporter(base.Importer):
     return doc
 
   def _do_import(self, doc, filepath):
-    files = {
-      'file': open(filepath, 'rb')
-    }
+    try:
+      files = {
+        'file': open(filepath, 'rb')
+      }
+    except OSError as error:
+      self._log('warning', 'OSError when  trying to open {}'.format(filepath))
+      return
     headers = {
       'Cookie': self.cookie
     }
@@ -75,10 +79,10 @@ class MPImporter(base.Importer):
       return
     jp2path = os.path.splitext(filepath)[0] + '.jp2'
     ext = os.path.splitext(filepath)[-1]
-    if os.path.isfile(jp2path):
-      self._log('debug', 'Importing converted jp2 version of "{}".'.format(filename))
-      filepath = jp2path
-    elif self.convert and ext.lower() in ('.raf', '.nef'):
+    #if os.path.isfile(jp2path):
+    #  self._log('debug', 'Importing converted jp2 version of "{}".'.format(filename))
+    #  filepath = jp2path
+    if self.convert and ext.lower() in ('.raf', '.nef'):
         self._log('debug', 'Converting {} to jp2.'.format(filename))
         converted = self._convert_file(filepath)
         if converted:
