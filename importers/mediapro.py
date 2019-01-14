@@ -35,9 +35,13 @@ class MPImporter(base.Importer):
     return doc
 
   def _do_import(self, doc, filepath):
-    files = {
-      'file': open(filepath, 'rb')
-    }
+    try:
+      files = {
+        'file': open(filepath, 'rb')
+      }
+    except OSError as error:
+      self._log('warning', 'OSError when  trying to open {}'.format(filepath))
+      return
     headers = {
       'Cookie': self.cookie
     }
@@ -75,11 +79,11 @@ class MPImporter(base.Importer):
     if self.ftp:
       import ipdb; ipdb.set_trace()
       filepath = self._download_file_ftp(filepath)
-    elif self.convert and (filename.lower() in ('.raf', 'nef')):
+    elif self.convert and (ext.lower() in ('.raf', 'nef')):
         self._log('debug', 'Converting {} to jp2.'.format(filename))
         converted = self._convert_file(filepath)
         if converted:
-          filepath = jp2path
+          filepath = converted
         else:
           self._log('debug', 'Failed to convert "{}" to jp2.'.format(filename))
           return

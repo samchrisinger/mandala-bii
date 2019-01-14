@@ -90,7 +90,7 @@ class Importer(object):
     if res.status_code == requests.codes.ok:
       try:
         res_json = res.json()
-      except json.decoder.JSONDecodeError as e:
+      except json.decoder.JSONDecodeError as error:
         self._log('warning', 'Non-json response body from GET. Response: {}'.format(res.text))
         return False
       if len(res_json) and res_json['node_id'] and (res_json['image_linked'] == "1"):
@@ -103,18 +103,31 @@ class Importer(object):
       with rawpy.imread(filepath) as raw:
         rgb = raw.postprocess()
         base = os.path.splitext(os.path.basename(filepath))[0]
-        imageio.imsave('./tmp/' + base + '.jp2', rgb)
-        return True
+        cvpath = './tmp/' + base + '.jp2'
+        imageio.imsave(cvpath, rgb)
+        return cvpath
     except Exception as e:
-      return False
+      return None
 
   def _convert_file_imagemagick(self, filepath):
+    try:
+      os.mkdir('./tmp')
+    except OSError:
+      pass
     base = os.path.splitext(os.path.basename(filepath))[0]
-    ret = call('convert {} {}.jp2'.format(filepath, base))
+    cvpath = './tmp/{}.jp2'.format(base)
+    try:
+      ret = call('convert "{}" "{}.jp2"'.format(filepath, cvpath), shell=True)
+    except FileNotFoundError as error:
+      self._log('warning', 'File not found when converting {}.'.format(filepath))
+      return None
     if ret != 0:
-      return call('dcraw -c -w -T {} | convert - ./tmp/{}.jp2'.format(filepath, base))
+      if not call('dcraw -c -w -T "{}" | convert - "{}"'.format(filepath, cvpath), shell=True):
+        return cvpath
+      else:
+        return None
     else:
-      return True
+      return None
 
   def _convert_file(self, filepath):
     try:
@@ -125,7 +138,7 @@ class Importer(object):
       return self._convert_file_py(filepath)
     elif self.convert_with == 'ImageMagick':
       return self._convert_file_imagemagick(filepath)
-    return False
+    return None
 
   def _cleanup(self):
     try:
