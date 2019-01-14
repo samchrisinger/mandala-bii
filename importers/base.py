@@ -46,7 +46,7 @@ class Importer(object):
     if self.ftp:
       return self.ftp_host.path.isfile(filepath)
     else:
-      return os.path.isfile(jp2path)
+      return os.path.isfile(filepath)
 
   def _find_file(self, filename):
     if self.ftp:
