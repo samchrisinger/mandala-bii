@@ -6,6 +6,7 @@ import os
 import rawpy
 import imageio
 from subprocess import call
+import ftputil
 
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -24,6 +25,13 @@ class Importer(object):
     self.convert_with = kwargs.get('convert_with', 'Python')
     self.filename = kwargs.get('filename')
     self.force = kwargs.get('force', False)
+    self.ftp = kwargs.get('ftp', False)
+    self.ftp_url = kwargs.get('ftp_url')
+    self.ftp_user = kwargs.get('ftp_user')
+    self.ftp_pass = kwargs.get('ftp_pass')
+    if self.ftp:
+      self.ftp_host = ftputil.FTPHost(self.ftp_url, self.ftp_user, self.ftp_pass)
+      self.ftp_host.chdir(self.images_path)
 
   def _log(self, level, msg):
     if self.verbose:
@@ -33,6 +41,42 @@ class Importer(object):
         return
       else:
         getattr(logging, level)(msg)
+
+  def _file_exists(self, filepath):
+    if self.ftp:
+      return self.ftp_host.path.isfile(filepath)
+    else:
+      return os.path.isfile(jp2path)
+
+  def _find_file(self, filename):
+    if self.ftp:
+      return self._find_file_ftp(filename)
+    for root, dirs, files in os.walk(self.images_path):
+      for name in files:
+        if name == filename:
+          return os.path.join(root, name)
+
+  def _find_file_ftp(self, filename, fpath=None):
+    fpath = fpath or self.images_path
+    names = self.ftp_host.listdir(self.ftp_host.curdir)
+    for name in names:
+      if self.ftp_host.path.isdir(name):
+        self.ftp_host.chdir(name)
+        found = self._find_file_ftp(filename, os.path.join(fpath, name))
+        if found:
+          return found
+      elif name == filename:
+        return os.path.join(fpath, filename)
+    self.ftp_host.chdir('..')
+
+  def _download_file_ftp(self, filepath, to='./tmp'):
+    try:
+      os.mkdir('./tmp')
+    except OSError:
+      pass
+    newpath = os.path.join(to, os.path.basename(filepath))
+    self.ftp_host.download(filepath, newpath)
+    return newpath
 
   def _already_imported(self, filename):
     if self.force:
@@ -56,10 +100,6 @@ class Importer(object):
 
   def _convert_file_py(self, filepath):
     try:
-      os.mkdir('./tmp')
-    except OSError:
-      pass
-    try:
       with rawpy.imread(filepath) as raw:
         rgb = raw.postprocess()
         base = os.path.splitext(os.path.basename(filepath))[0]
@@ -77,6 +117,10 @@ class Importer(object):
       return True
 
   def _convert_file(self, filepath):
+    try:
+      os.mkdir('./tmp')
+    except OSError:
+      pass
     if self.convert_with == 'Python':
       return self._convert_file_py(filepath)
     elif self.convert_with == 'ImageMagick':

@@ -11,12 +11,6 @@ class MPImporter(base.Importer):
     self.xml_path = xml_path
     self.collection_id = collection_id or '0'
 
-  def _find_file(self, filename):
-    for root, dirs, files in os.walk(self.images_path):
-      for name in files:
-        if name == filename:
-          return os.path.join(root, name)
-
   def _remap_fields(self, item, catalog):
     doc = {
       entry.tag: {
@@ -75,9 +69,12 @@ class MPImporter(base.Importer):
       return
     jp2path = os.path.splitext(filepath)[0] + '.jp2'
     ext = os.path.splitext(filepath)[-1]
-    if os.path.isfile(jp2path):
+    if self._file_exists(jp2path):
       self._log('debug', 'Importing converted jp2 version of "{}".'.format(filename))
       filepath = jp2path
+    if self.ftp:
+      import ipdb; ipdb.set_trace()
+      filepath = self._download_file_ftp(filepath)
     elif self.convert and (filename.lower() in ('.raf', 'nef')):
         self._log('debug', 'Converting {} to jp2.'.format(filename))
         converted = self._convert_file(filepath)

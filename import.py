@@ -27,6 +27,15 @@ parser.add_argument('-fn', '--filename', default=None,
                     help='Find and convert a specific import by filename')
 parser.add_argument('--force', default=False, action='store_true',
                     help='Force import even if already imported.')
+parser.add_argument('--ftp', default=False, action='store_true',
+                    help='Use ftp to find and download files')
+parser.add_argument('--ftp_url', default='ftp.box.com',
+                    help='FTP host.')
+parser.add_argument('--ftp_user',
+                    help='FTP username.')
+parser.add_argument('--ftp_pass',
+                    help='FTP password.')
+
 args = parser.parse_args();
 
 if __name__ == '__main__':
@@ -46,7 +55,11 @@ if __name__ == '__main__':
         convert=args.convert,
         convert_with=args.convert_with,
         filename=args.filename,
-        force=args.force
+        force=args.force,
+        ftp=args.ftp,
+        ftp_url=args.ftp_url,
+        ftp_user=args.ftp_user,
+        ftp_pass=args.ftp_pass
       )
       importer.run()
   elif args.source == 'Encoded':
