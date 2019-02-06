@@ -71,22 +71,21 @@ class MPImporter(base.Importer):
     if filepath is None:
       self._log('warning', 'File "{}" not found.'.format(filename))
       return
+    if self.ftp:
+      filepath = self._download_file_ftp(filepath)
     jp2path = os.path.splitext(filepath)[0] + '.jp2'
     ext = os.path.splitext(filepath)[-1]
     if self._file_exists(jp2path):
       self._log('debug', 'Importing converted jp2 version of "{}".'.format(filename))
       filepath = jp2path
-    if self.ftp:
-      import ipdb; ipdb.set_trace()
-      filepath = self._download_file_ftp(filepath)
-    elif self.convert and (ext.lower() in ('.raf', 'nef')):
-        self._log('debug', 'Converting {} to jp2.'.format(filename))
-        converted = self._convert_file(filepath)
-        if converted:
-          filepath = converted
-        else:
-          self._log('debug', 'Failed to convert "{}" to jp2.'.format(filename))
-          return
+    elif self.convert and (ext.lower() in ('.raf', '.nef')):
+      self._log('debug', 'Converting {} to jp2.'.format(filename))
+      converted = self._convert_file(filepath)
+      if converted:
+        filepath = converted
+      else:
+        self._log('debug', 'Failed to convert "{}" to jp2.'.format(filename))
+        return
     self._do_import(doc, filepath)
 
   def run(self):

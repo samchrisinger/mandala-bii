@@ -1,9 +1,9 @@
 import argparse
 
-from importers import mediapro
+from importers import mediapro, audit
 
 parser = argparse.ArgumentParser(description='Bulk import images into the Mandala images app.')
-parser.add_argument('-s', '--source', choices=['MediaPro', 'Encoded'], required=True,
+parser.add_argument('-s', '--source', choices=['MediaPro', 'Encoded', 'Audit'], required=True,
                     help='What source are the images coming from?')
 parser.add_argument('-x', '--xml',
                     help='If importing from MediaPro, the path to the XML catalog file.')
@@ -61,6 +61,27 @@ if __name__ == '__main__':
         ftp_user=args.ftp_user,
         ftp_pass=args.ftp_pass
       )
-      importer.run()
   elif args.source == 'Encoded':
     pass
+  elif args.source == 'Audit':
+    importer = audit.Auditor(
+        url=args.url,
+        cookie=args.cookie,
+        images_path=args.images_path,
+        xml_path=args.xml,
+        collection_id=args.collection_id,
+        logfile=args.logfile,
+        verbose=args.verbose,
+        convert=args.convert,
+        convert_with=args.convert_with,
+        filename=args.filename,
+        force=args.force,
+        ftp=args.ftp,
+        ftp_url=args.ftp_url,
+        ftp_user=args.ftp_user,
+        ftp_pass=args.ftp_pass
+      )
+  importer.run()
+
+           
+

@@ -11,9 +11,21 @@ import ftputil
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+def _memoize_find_file(func):
+  index = {}
+  def wrapper(cls, filename, *args, **kwargs):
+    if index.get(filename):
+      return index[filename]
+    for found, path in func(cls, filename, *args, **kwargs):
+      index[os.path.basename(path)] = path
+      if found:
+        return path
+  return wrapper
+
 class Importer(object):
 
   def __init__(self, url, cookie, images_path, *args, **kwargs):
+    self._index = {}
     self.url = url
     self.cookie = cookie
     self.images_path = images_path
@@ -48,26 +60,30 @@ class Importer(object):
     else:
       return os.path.isfile(filepath)
 
-  def _find_file(self, filename):
+  @_memoize_find_file
+  def _find_file(self, filename, *args, **kwargs):
     if self.ftp:
-      return self._find_file_ftp(filename)
+      yield from self._find_file_ftp(filename, *args, **kwargs)
     for root, dirs, files in os.walk(self.images_path):
       for name in files:
         if name == filename:
-          return os.path.join(root, name)
+          yield (True, os.path.join(root, name))
+        else:
+          yield (False, os.path.join(root, name))
 
   def _find_file_ftp(self, filename, fpath=None):
     fpath = fpath or self.images_path
-    names = self.ftp_host.listdir(self.ftp_host.curdir)
+    self.ftp_host.chdir(fpath)
+    names = self.ftp_host.listdir(self.ftp_host.getcwd())
     for name in names:
       if self.ftp_host.path.isdir(name):
         self.ftp_host.chdir(name)
-        found = self._find_file_ftp(filename, os.path.join(fpath, name))
-        if found:
-          return found
+        yield from self._find_file_ftp(filename, os.path.join(fpath, name))
+        self.ftp_host.chdir(fpath)
       elif name == filename:
-        return os.path.join(fpath, filename)
-    self.ftp_host.chdir('..')
+        yield (True, os.path.join(fpath, filename))
+      else:
+        yield (False, os.path.join(fpath, name))
 
   def _download_file_ftp(self, filepath, to='./tmp'):
     try:
