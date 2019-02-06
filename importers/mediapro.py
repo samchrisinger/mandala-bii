@@ -105,4 +105,4 @@ class MPImporter(base.Importer):
       self._log('info', 'Attempting to import {} of {}.'.format(i, total))
       i += 1
       self._run_one(item)
-    self._cleanup()
+      self._cleanup()
