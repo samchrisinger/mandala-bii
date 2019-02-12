@@ -10,7 +10,7 @@ class ImageRepairer(base.Importer):
     super().__init__(*args, **kwargs)
     self.csv_path = kwargs['csv']
 
-  def _do_import(self, nid, filepath):
+  def _do_import(self, nid, filepath, tid):
     try:
       files = {
         'file': open(filepath, 'rb')
@@ -23,6 +23,7 @@ class ImageRepairer(base.Importer):
     }
     res = requests.post(self.url, files=files, headers=headers, data={
       'nid': nid,
+      'tid': tid,
       'repair': True
     }, verify=False)
     if res.status_code != requests.codes.ok:
@@ -39,7 +40,7 @@ class ImageRepairer(base.Importer):
         res.text
       ))
 
-  def _run_one(self, filename, nid):
+  def _run_one(self, filename, nid, tid):
     filepath = self._find_file(filename)
     if not filepath:
       self._log('info', 'File {} not found in this path'.format(filename))
@@ -55,13 +56,13 @@ class ImageRepairer(base.Importer):
       else:
         self._log('debug', 'Failed to convert "{}" to jp2.'.format(filename))
         return
-    self._do_import(nid, filepath)
+    self._do_import(nid, filepath, tid)
 
   def run(self):
     import ipdb; ipdb.set_trace()
     with open(self.csv_path) as fp:
       reader = csv.reader(fp, delimiter='\t')
       for row in reader:
-        nid, filename = row
-        self._run_one(filename, nid)
+        nid, tid, filename = row
+        self._run_one(filename, nid, tid)
         self._cleanup()
