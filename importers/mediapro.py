@@ -6,10 +6,9 @@ from . import base
 
 class MPImporter(base.Importer):
 
-  def __init__(self, url, cookie, images_path, xml_path, collection_id=None, *args, **kwargs):
-    super().__init__(url, cookie, images_path, *args, **kwargs)
-    self.xml_path = xml_path
-    self.collection_id = collection_id or '0'
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    self.xml_path = kwargs['xml']
 
   def _remap_fields(self, item, catalog):
     doc = {

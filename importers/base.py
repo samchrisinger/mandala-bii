@@ -24,11 +24,12 @@ def _memoize_find_file(func):
 
 class Importer(object):
 
-  def __init__(self, url, cookie, images_path, *args, **kwargs):
+  def __init__(self, *args, **kwargs):
     self._index = {}
-    self.url = url
-    self.cookie = cookie
-    self.images_path = images_path
+    self.url = kwargs['url']
+    self.cookie = kwargs['cookie']
+    self.images_path = kwargs['images_path']
+    self.collection_id = kwargs.get('collection_id', '0')
     self.logfile = kwargs.get('logfile')
     if self.logfile:
       logging.basicConfig(filename=self.logfile)
@@ -62,14 +63,9 @@ class Importer(object):
 
   @_memoize_find_file
   def _find_file(self, filename, *args, **kwargs):
-    if self.ftp:
-      yield from self._find_file_ftp(filename, *args, **kwargs)
-    for root, dirs, files in os.walk(self.images_path):
-      for name in files:
-        if name == filename:
-          yield (True, os.path.join(root, name))
-        else:
-          yield (False, os.path.join(root, name))
+    for fpath in self._list_files():
+      fname = os.path.basename(fpath)
+      yield ((fname == filename), fpath)
 
   def _find_file_ftp(self, filename, fpath=None):
     fpath = fpath or self.images_path
@@ -93,6 +89,26 @@ class Importer(object):
     newpath = os.path.join(to, os.path.basename(filepath))
     self.ftp_host.download(filepath, newpath)
     return newpath
+
+  def _list_files_ftp(self, fpath=None):
+    fpath = fpath or self.images_path
+    self.ftp_host.chdir(fpath)
+    names = self.ftp_host.listdir(self.ftp_host.getcwd())
+    for name in names:
+      if self.ftp_host.path.isdir(name):
+        self.ftp_host.chdir(name)
+        yield from self._list_files_ftp(os.path.join(fpath, name))
+        self.ftp_host.chdir(fpath)
+      else:
+        yield os.path.join(fpath, name)
+
+  def _list_files(self):
+    if self.ftp:
+      yield from self._list_files_ftp()
+    else:
+      for root, dirs, files in os.walk(self.images_path):
+        for name in files:
+          yield os.path.join(root, name)
 
   def _already_imported(self, filename):
     if self.force:

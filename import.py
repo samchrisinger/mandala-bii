@@ -1,12 +1,14 @@
 import argparse
 
-from importers import mediapro, audit
+from importers import mediapro, audit, file_meta, img_repair
 
 parser = argparse.ArgumentParser(description='Bulk import images into the Mandala images app.')
-parser.add_argument('-s', '--source', choices=['MediaPro', 'Encoded', 'Audit'], required=True,
+parser.add_argument('-s', '--source', choices=['MediaPro', 'Encoded', 'Audit', 'Repair'], required=True,
                     help='What source are the images coming from?')
 parser.add_argument('-x', '--xml',
                     help='If importing from MediaPro, the path to the XML catalog file.')
+parser.add_argument('--csv',
+                    help='If repairing broken images, the nid, filename CSV file path.')
 parser.add_argument('-i', '--images_path', required=True,
                     help='The path to stored images. This script will automatically search for a file in subdirectories, so this should be the root folder to search from.')
 parser.add_argument('-u', '--url', required=True,
@@ -39,49 +41,20 @@ parser.add_argument('--ftp_pass',
 args = parser.parse_args();
 
 if __name__ == '__main__':
+  kwargs = vars(args)
+  Importer = None
   if args.source == 'MediaPro':
     if args.xml is None:
       print('If importing from MediaPro you must specify a path to a XML catalog file.')
       exit
     else:
-      importer = mediapro.MPImporter(
-        url=args.url,
-        cookie=args.cookie,
-        images_path=args.images_path,
-        xml_path=args.xml,
-        collection_id=args.collection_id,
-        logfile=args.logfile,
-        verbose=args.verbose,
-        convert=args.convert,
-        convert_with=args.convert_with,
-        filename=args.filename,
-        force=args.force,
-        ftp=args.ftp,
-        ftp_url=args.ftp_url,
-        ftp_user=args.ftp_user,
-        ftp_pass=args.ftp_pass
-      )
+      Importer = mediapro.MPImporter
   elif args.source == 'Encoded':
-    pass
+    Importer = file_meta.FileMetadataImporter
   elif args.source == 'Audit':
-    importer = audit.Auditor(
-        url=args.url,
-        cookie=args.cookie,
-        images_path=args.images_path,
-        xml_path=args.xml,
-        collection_id=args.collection_id,
-        logfile=args.logfile,
-        verbose=args.verbose,
-        convert=args.convert,
-        convert_with=args.convert_with,
-        filename=args.filename,
-        force=args.force,
-        ftp=args.ftp,
-        ftp_url=args.ftp_url,
-        ftp_user=args.ftp_user,
-        ftp_pass=args.ftp_pass
-      )
-  importer.run()
+    Importer = audit.Auditor
+  elif args.source == 'Repair':
+    Importer = img_repair.ImageRepairer
 
-           
-
+  if Importer:
+    Importer(**kwargs).run()
