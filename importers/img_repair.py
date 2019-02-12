@@ -46,6 +46,15 @@ class ImageRepairer(base.Importer):
       return
     if self.ftp:
       filepath = self._download_file_ftp(filepath)
+    ext = os.path.splitext(filepath)[-1]
+    if self.convert and (ext.lower() in ('.raf', '.nef')):
+      self._log('debug', 'Converting {} to jp2.'.format(filename))
+      converted = self._convert_file(filepath)
+      if converted:
+        filepath = converted
+      else:
+        self._log('debug', 'Failed to convert "{}" to jp2.'.format(filename))
+        return
     self._do_import(nid, filepath)
 
   def run(self):
