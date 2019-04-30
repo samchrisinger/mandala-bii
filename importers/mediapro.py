@@ -100,8 +100,11 @@ class MPImporter(base.Importer):
       items = [i for i in items if i['Filename']['value'] == self.filename]
     total = len(items)
     i = 0
-    for item in items:
-      self._log('info', 'Attempting to import {} of {}.'.format(i, total))
+    for item in (items.reverse() if self.reverse else items):
+      self._log('info', 'Attempting to import {} of {}.'.format(
+        (total - i if self.reverse else i),
+        total
+      ))
       i += 1
       self._run_one(item)
       self._cleanup()

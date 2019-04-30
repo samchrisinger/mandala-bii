@@ -21,7 +21,7 @@ parser.add_argument('-l', '--logfile', default=None,
                     help='Log progress to a file.')
 parser.add_argument('-v', '--verbose', default=False, action='store_true',
                     help='Prints progress to stdout.')
-parser.add_argument('-cv', '--convert', default=True, action='store_true',
+parser.add_argument('-cv', '--convert', default=False, action='store_true',
                     help='Convert RAW files to jp2 before upload?')
 parser.add_argument('-cw', '--convert_with', default='Python', choices=['Python', 'ImageMagick'],
                     help='Convert with Python or ImageMagick?')
@@ -37,6 +37,8 @@ parser.add_argument('--ftp_user',
                     help='FTP username.')
 parser.add_argument('--ftp_pass',
                     help='FTP password.')
+parser.add_argument('--reverse', action='store_true',
+                    help='Reverse order of import.')
 
 args = parser.parse_args();
 
