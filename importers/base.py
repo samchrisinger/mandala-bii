@@ -149,7 +149,7 @@ class Importer(object):
     base = os.path.splitext(os.path.basename(filepath))[0]
     cvpath = './tmp/{}.jp2'.format(base)
     try:
-      ret = call('convert "{}" "{}.jp2"'.format(filepath, cvpath), shell=True)
+      ret = call('convert "{}" -set colorspace RGB -colorspace sRGB -define jp2:rate=24 "{}"'.format(filepath, cvpath), shell=True)
     except FileNotFoundError as error:
       self._log('warning', 'File not found when converting {}.'.format(filepath))
       return None
@@ -159,7 +159,7 @@ class Importer(object):
       else:
         return None
     else:
-      return None
+      return cvpath
 
   def _convert_file(self, filepath):
     try:

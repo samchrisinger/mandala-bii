@@ -59,8 +59,8 @@ class ImageRepairer(base.Importer):
     self._do_import(nid, filepath, tid)
 
   def run(self):
-    import ipdb; ipdb.set_trace()
-    with open(self.csv_path) as fp:
+    # import ipdb; ipdb.set_trace()
+    with open(self.csv_path, 'r') as fp:
       reader = csv.reader(fp, delimiter='\t')
       for row in reader:
         nid, tid, filename = row
