@@ -45,6 +45,7 @@ class Importer(object):
     if self.ftp:
       self.ftp_host = ftputil.FTPHost(self.ftp_url, self.ftp_user, self.ftp_pass)
       self.ftp_host.chdir(self.images_path)
+    self.reverse = False
 
   def _log(self, level, msg):
     if self.verbose:

@@ -27,7 +27,7 @@ class MPImporter(base.Importer):
     doc['OrganizationName'] = doc.get('UserField_1')
     doc['ProjectName'] = doc.get('UserField_2')
     doc['SponsorName'] = doc.get('UserField_3')
-    doc['Title'] = doc.get('UserField_4', 'Untitled')
+    doc['Title'] = doc.get('UserField_4', {'value': 'Untitled'})
     doc['SpotFeature'] = doc.get('UserField_5')
     doc['GeneralNote'] = doc.get('UserField_6')
     doc['PrivateNote'] = doc.get('UserField_7')
@@ -44,6 +44,7 @@ class MPImporter(base.Importer):
     headers = {
       'Cookie': self.cookie
     }
+
     res = requests.post(self.url, files=files, headers=headers, data={
       key:d['value']
       for key, d in doc.items() if key and d
