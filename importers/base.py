@@ -150,12 +150,12 @@ class Importer(object):
     base = os.path.splitext(os.path.basename(filepath))[0]
     cvpath = './tmp/{}.jp2'.format(base)
     try:
-      ret = call('convert "{}" -set colorspace RGB -colorspace sRGB -define jp2:rate=24 "{}"'.format(filepath, cvpath), shell=True)
+      ret = call('convert "{}" -define jp2:rate=24 "{}"'.format(filepath, cvpath), shell=True)
     except FileNotFoundError as error:
       self._log('warning', 'File not found when converting {}.'.format(filepath))
       return None
     if ret != 0:
-      if not call('dcraw -c -w -T "{}" | convert - "{}"'.format(filepath, cvpath), shell=True):
+      if not call('dcraw -c -w -T "{}" | convert - -define jp2:rate=24 "{}"'.format(filepath, cvpath), shell=True):
         return cvpath
       else:
         return None
