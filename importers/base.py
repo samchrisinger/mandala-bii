@@ -155,7 +155,7 @@ class Importer(object):
       self._log('warning', 'File not found when converting {}.'.format(filepath))
       return None
     if ret != 0:
-      if not call('dcraw -c -w -T "{}" | convert - -define jp2:rate=24 "{}"'.format(filepath, cvpath), shell=True):
+      if not call('dcraw -4 -w -M+ -T -c "{}" | convert - -set colorspace RGB -colorspace sRGB -define jp2:rate=24 "{}"'.format(filepath, cvpath), shell=True):
         return cvpath
       else:
         return None
