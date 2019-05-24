@@ -107,5 +107,9 @@ class MPImporter(base.Importer):
         total
       ))
       i += 1
-      self._run_one(item)
-      self._cleanup()
+      try:
+        self._run_one(item)
+      except Exception as err:
+        raise err
+      finally:
+        self._cleanup()

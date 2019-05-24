@@ -89,6 +89,8 @@ class Importer(object):
       pass
     newpath = os.path.join(to, os.path.basename(filepath))
     self.ftp_host.download(filepath, newpath)
+    if os.stat(newpath).st_size == 0:
+      raise RuntimeError('Tried to download {} via FTP but go an empty file.'.format(filepath))
     return newpath
 
   def _list_files_ftp(self, fpath=None):
