@@ -11,13 +11,20 @@ class MPImporter(base.Importer):
     self.xml_path = kwargs['xml']
 
   def _remap_fields(self, item, catalog):
-    doc = {
-      entry.tag: {
-        'value': (entry.text or '').strip('\n').strip(),
-        'parent': child.tag.strip('\n').strip(),
-      }
-      for child in item.getchildren() for entry in child.getchildren()
-    }
+    doc = {}
+    for child in item.getchildren():
+      for entry in child.getchildren():
+        mapped = {
+          'value': (entry.text or '').strip('\n').strip(),
+          'parent': child.tag.strip('\n').strip(),
+        }
+        if doc.get(entry.tag):
+          if not isinstance(doc[entry.tag]['value'], list):
+            doc[entry.tag]['value'] = [doc[entry.tag]['value'], ]
+            doc[entry.tag]['value'].append(mapped['value'])
+        else:
+          doc[entry.tag] = mapped
+
     doc['Catalog'] = {
       'value': catalog
     }
@@ -44,11 +51,11 @@ class MPImporter(base.Importer):
     headers = {
       'Cookie': self.cookie
     }
-
-    res = requests.post(self.url, files=files, headers=headers, data={
-      key:d['value']
+    data = {
+      key if not isinstance(d['value'], list) else '{}[]'.format(key): d['value']
       for key, d in doc.items() if key and d
-    }, verify=False)
+    }
+    res = requests.post(self.url, files=files, headers=headers, data=data, verify=False)
     if res.status_code != requests.codes.ok:
       self._log('warning', 'Non-200 status returned from POST for "{}". Code was {}.'.format(
         doc['Filename'],
