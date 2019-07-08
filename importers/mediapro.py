@@ -103,7 +103,7 @@ class MPImporter(base.Importer):
     i = 0
     for item in (items.reverse() if self.reverse else items):
       self._log('info', 'Attempting to import {} of {}.'.format(
-        (total - i if self.reverse else i),
+        (total - i if self.reverse else i + 1),
         total
       ))
       i += 1
