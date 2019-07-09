@@ -62,11 +62,15 @@ class Importer(object):
     else:
       return os.path.isfile(filepath)
 
-  @_memoize_find_file
-  def _find_file(self, filename, *args, **kwargs):
+  def _do_find_file(self, filename, *args, **kwargs):
     for fpath in self._list_files():
       fname = os.path.basename(fpath)
       yield ((fname == filename), fpath)
+
+  @_memoize_find_file
+  def _find_file(self, filename, *args, **kwargs):
+    for found, path in self._do_find_file(filename, *args, **kwargs):
+      yield (found, path)
 
   def _find_file_ftp(self, filename, fpath=None):
     fpath = fpath or self.images_path
