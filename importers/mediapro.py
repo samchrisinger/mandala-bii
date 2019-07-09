@@ -9,6 +9,39 @@ class MPImporter(base.Importer):
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
     self.xml_path = kwargs['xml']
+    self.fail_for_dupes = kwargs.get('fail_for_dupes', True)
+
+  def _check_duplicates_box(self):
+    print("Checking for duplicate filenames in the Box folder")
+    print('-----------------------------')
+    filenames = set()
+    dupes = False
+    for _, filename in self._do_find_file('____________________'):
+      if not filename in filenames:
+        filenames.add(filename)
+      else:
+        dupes = True
+        print("Filename {} is used more than once in the Box folder".format(filename))
+    print('-----------------------------')
+    return dupes
+
+  def _check_duplicates_xml(self):
+    root = None
+    try:
+      xml = ET.parse(self.xml_path)
+      root = xml.getroot()
+    except ET.ParseError:
+      root = ET.fromstring(open(self.xml_path, 'rb').read().decode('utf-8', errors='ignore'))
+    filenames = [i.find('AssetProperties').find('Filename').text for i in root.iter('MediaItem')]
+    print("Checking for duplicate filenames in the XML catalog")
+    print('-----------------------------')
+    dupes = False
+    for i in range(len(filenames)):
+      if filenames.index(filenames[i]) != i:
+        dupes = True
+        print("Filename {} is used more than once in the XML catalog file.".format(filenames[i]))
+    print('-----------------------------')
+    return dupes
 
   def _remap_fields(self, item, catalog):
     doc = {}
@@ -96,6 +129,10 @@ class MPImporter(base.Importer):
     self._do_import(doc, filepath)
 
   def run(self):
+    dupes = self._check_duplicates_xml() or self._check_duplicates_box()
+    if dupes and self.fail_for_dupes:
+      print("Exiting because of duplicate filenames")
+      exit()
     root = None
     try:
       xml = ET.parse(self.xml_path)
