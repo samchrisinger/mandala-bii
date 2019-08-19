@@ -73,14 +73,7 @@ class MPImporter(base.Importer):
     doc['PrivateNote'] = doc.get('UserField_7')
     return doc
 
-  def _do_import(self, doc, filepath):
-    try:
-      files = {
-        'file': open(filepath, 'rb')
-      }
-    except OSError as error:
-      self._log('warning', 'OSError when  trying to open {}'.format(filepath))
-      return
+  def _post_data(self, doc, files=None):
     headers = {
       'Cookie': self.cookie
     }
@@ -88,7 +81,11 @@ class MPImporter(base.Importer):
       key if not isinstance(d['value'], list) else '{}[]'.format(key): d['value']
       for key, d in doc.items() if key and d
     }
-    res = requests.post(self.url, files=files, headers=headers, data=data, verify=False)
+    res = None
+    if files:
+      res = requests.post(self.url, files=files, headers=headers, data=data, verify=False)
+    else:
+      res = requests.post(self.url, headers=headers, data=data, verify=False)
     if res.status_code != requests.codes.ok:
       self._log('warning', 'Non-200 status returned from POST for "{}". Code was {}.'.format(
         doc['Filename'],
@@ -102,6 +99,19 @@ class MPImporter(base.Importer):
         doc['Filename'],
         res.text
       ))
+
+
+  def _do_import(self, doc, filepath):
+    files = None
+    if filepath:
+      try:
+        files = {
+          'file': open(filepath, 'rb')
+        }
+      except OSError as error:
+        self._log('warning', 'OSError when  trying to open {}'.format(filepath))
+        return
+    self._post_data(doc, files)
 
   def _run_one(self, doc):
     filename = doc['Filename']['value']

@@ -2,6 +2,10 @@ from . import mediapro
 
 class MetaRepairer(mediapro.MPImporter):
 
+  def _run_one(self, doc):
+    filepath = None
+    self._do_import(doc, filepath)
+
   def _do_import(self, doc, filepath):
     filename = doc['Filename']
     # 1) make a GET request to API endpoint to get node id
