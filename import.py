@@ -39,6 +39,8 @@ parser.add_argument('--ftp_pass',
                     help='FTP password.')
 parser.add_argument('--reverse', action='store_true',
                     help='Reverse order of import.')
+parser.add_argument('--fail_for_dupes', default=True, action='store_true',
+                    help='Exit the script early if any duplcate filenames are used')
 
 args = parser.parse_args();
 
@@ -57,6 +59,5 @@ if __name__ == '__main__':
     Importer = audit.Auditor
   elif args.source == 'Repair':
     Importer = img_repair.ImageRepairer
-
   if Importer:
     Importer(**kwargs).run()
