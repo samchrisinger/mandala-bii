@@ -1,6 +1,6 @@
 import argparse
 
-from importers import mediapro, audit, file_meta, img_repair
+from importers import mediapro, audit, file_meta, img_repair, meta_repair
 
 parser = argparse.ArgumentParser(description='Bulk import images into the Mandala images app.')
 parser.add_argument('-s', '--source', choices=['MediaPro', 'Encoded', 'Audit', 'Repair', 'MetaRepair'], required=True,

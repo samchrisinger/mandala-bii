@@ -100,7 +100,6 @@ class MPImporter(base.Importer):
         res.text
       ))
 
-
   def _do_import(self, doc, filepath):
     files = None
     if filepath:
