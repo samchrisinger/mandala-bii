@@ -19,10 +19,7 @@ class MetaRepairer(mediapro.MPImporter):
         prms = {
             'filename': doc['Filename']['value']
         }
-        # print(prms)
-        # url = 'https://images.shanti.virginia.edu/admin/content/bulk_image_import/api'
-        # url = 'https://images.dd:8443/admin/content/bulk_image_import/api'
-        print("self url is: {}".format(self.url))
+
         imgreq = requests.get(self.url, headers=headers, params=prms)
         if imgreq.status_code == 200:
             imgdata = imgreq.json()
@@ -49,6 +46,7 @@ class MetaRepairer(mediapro.MPImporter):
             key if not isinstance(d['value'], list) else '{}[]'.format(key): d['value']
             for key, d in doc.items() if key and d
         }
+
         res = None
         if files:
             res = requests.post(self.url, files=files, headers=headers, data=data, verify=False)
