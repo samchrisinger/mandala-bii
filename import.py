@@ -42,7 +42,7 @@ parser.add_argument('--reverse', action='store_true',
 parser.add_argument('--fail_for_dupes', default=True, action='store_true',
                     help='Exit the script early if any duplcate filenames are used')
 
-args = parser.parse_args();
+args = parser.parse_args()
 
 if __name__ == '__main__':
   kwargs = vars(args)
