@@ -3,7 +3,7 @@ import argparse
 from importers import mediapro, audit, file_meta, img_repair
 
 parser = argparse.ArgumentParser(description='Bulk import images into the Mandala images app.')
-parser.add_argument('-s', '--source', choices=['MediaPro', 'Encoded', 'Audit', 'Repair'], required=True,
+parser.add_argument('-s', '--source', choices=['MediaPro', 'Encoded', 'Audit', 'Repair', 'MetaRepair'], required=True,
                     help='What source are the images coming from?')
 parser.add_argument('-x', '--xml',
                     help='If importing from MediaPro, the path to the XML catalog file.')
@@ -59,5 +59,7 @@ if __name__ == '__main__':
     Importer = audit.Auditor
   elif args.source == 'Repair':
     Importer = img_repair.ImageRepairer
+  elif args.source == 'MetaRepair':
+    Importer = meta_repair.MetaRepairer
   if Importer:
     Importer(**kwargs).run()
