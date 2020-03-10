@@ -91,6 +91,7 @@ class FileMetadataImporter(base.Importer):
   def run(self):
     for filepath in self._list_files():
       filename = os.path.basename(filepath)
+      print("Filename: {}".format(filename))
       if self.filename:
         if filename != self.filename:
           continue
