@@ -1,3 +1,4 @@
 importers/__pycache__
 tmp
+*.log
 

@@ -97,6 +97,11 @@ class MPImporter(base.Importer):
       if res.status_code == requests.codes.forbidden:
         self._log('debug', 'Forbidden response from POST to server. Likely the cookie is expired, so the script will exit.')
         exit()
+    elif 'Import failed' in res.text:
+      self._log('warning', '200 status returned from POST but Drupal import failed: "{}". Payload: {}.'.format(
+        doc['Filename'],
+        res.text
+      ))
     else:
       self._log('info', '200 status returned from POST for "{}". Payload: {}.'.format(
         doc['Filename'],

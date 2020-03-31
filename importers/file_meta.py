@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import requests
@@ -18,10 +19,12 @@ class FileMetadataImporter(base.Importer):
     headers = {
       'Cookie': self.cookie
     }
-    res = requests.post(self.url, files=files, headers=headers, data={
-      key:d['value']
-      for key, d in doc.items() if key and d
-    }, verify=False)
+    print(json.dumps(doc))
+    print(type(doc))
+    # Strip out empty fields (??)
+    mdata = {key: d for key, d in doc.items() if key and d}
+    self._log('debug', json.dumps(mdata))
+    res = requests.post(self.url, files=files, headers=headers, data=mdata, verify=False)
     if res.status_code != requests.codes.ok:
       self._log('warning', 'Non-200 status returned from POST for "{}". Code was {}.'.format(
         doc['Filename'],
@@ -61,11 +64,11 @@ class FileMetadataImporter(base.Importer):
     meta['Category'] = meta.get('SupplementalCategories')
     meta['Author'] = meta.get('Creator')
     meta['CaptureDate'] = meta.get('CreateDate')
+    # Find Exif Headline field and use for "captions"
     meta['Caption'] = []
     headlines = meta.get('Headline', '')
     for line in headlines.split('\n'):
       match = re.search('\{.+\[(.+)\]\}(.+)\{.+\[(.+)\]\}', line)
-      caption = None
       if match:
         lang_code = match.group(1)
         caption = match.group(2)
@@ -76,8 +79,31 @@ class FileMetadataImporter(base.Importer):
         'lang': lang_code,
         'text': caption
       })
-
-
+    # Add code for descriptions
+    descs = meta.get('description')
+    for line in descs.split('\n'):
+      match = re.search('\{.+\[(.+)\]\}(.+)\{.+\[(.+)\]\}', line)
+      if match:
+        lang_code = match.group(1)
+        desc = match.group(2)
+      else:
+        lang_code = 'en'
+        desc = line
+      foundit = False
+      for ind, cobj in enumerate(meta['Caption']):
+        if cobj['lang'] == lang_code:
+          meta['Caption'][ind]['description'] = desc
+          foundit = True
+      if not foundit:
+        meta['Caption'].append({
+          'lang': lang_code,
+          'text': 'Untitled',
+          'description': desc
+        })
+    # Convert all values in meta dictionary to strings
+    for ky in meta.keys():
+      meta[ky] = str(meta[ky])
+    return meta
 
   def _run_one(self, filepath):
     filename = os.path.basename(filepath)

@@ -32,7 +32,7 @@ class Importer(object):
     self.collection_id = kwargs.get('collection_id', '0')
     self.logfile = kwargs.get('logfile')
     if self.logfile:
-      logging.basicConfig(filename=self.logfile)
+      logging.basicConfig(filename=self.logfile, level=logging.DEBUG)
     self.verbose = kwargs.get('verbose', False)
     self.convert = kwargs.get('convert', True)
     self.convert_with = kwargs.get('convert_with', 'Python')
