@@ -19,11 +19,9 @@ class FileMetadataImporter(base.Importer):
     headers = {
       'Cookie': self.cookie
     }
-    print(json.dumps(doc))
-    print(type(doc))
     # Strip out empty fields (??)
     mdata = {key: d for key, d in doc.items() if key and d}
-    self._log('debug', json.dumps(mdata))
+
     res = requests.post(self.url, files=files, headers=headers, data=mdata, verify=False)
     if res.status_code != requests.codes.ok:
       self._log('warning', 'Non-200 status returned from POST for "{}". Code was {}.'.format(
@@ -43,20 +41,13 @@ class FileMetadataImporter(base.Importer):
     exifinfo = pexi.get_json(filepath)[0]
     meta = {key.split(':').pop(): value for key, value in exifinfo.items()}
     meta['Filename'] = meta['FileName']
+    meta['Catalog'] = 'Exif'
+    meta['Height'] = meta['ImageHeight']
+    meta['Width'] = meta['ImageWidth']
     meta['ViewRotation'] = '0'
+    meta['CollectionId'] = self.collection_id
     meta['Rights'] = meta.get('UsageTerms', '')
     meta['ISOSpeedRating'] = meta.get('ISO', '')
-    '''
-    meta['ExposureBias'] = meta.get('ExposureBias', '')
-    meta['Aperture'] = meta.get('Aperture', '')
-    meta['MeteringMode'] = meta.get('MeteringMode', '')
-    meta['LightSource']  = meta.get('LightSource', '')
-    meta['Flash'] = meta.get('Flash', '')
-    meta['FocalLength'] = meta.get('FocalLength', '')
-    meta['SensingMethod'] = meta.get('SensingMethod', '')
-    meta['NoiseReduction'] = meta.get('NoiseReduction', '')
-    meta['Lens'] = meta.get('Lens', '')
-    '''
     meta['Latitude'] = meta.get('GPSLatitude')
     meta['Longitude'] = meta.get('GPSLongitude')
     meta['Altitude'] = meta.get('GPSAltitude')
@@ -64,10 +55,15 @@ class FileMetadataImporter(base.Importer):
     meta['Category'] = meta.get('SupplementalCategories')
     meta['Author'] = meta.get('Creator')
     meta['CaptureDate'] = meta.get('CreateDate')
+
     # Find Exif Headline field and use for "captions"
     meta['Caption'] = []
     headlines = meta.get('Headline', '')
-    for line in headlines.split('\n'):
+    linelist = headlines.split("\n")
+    if len(linelist) < len(headlines.split("\r")):
+      linelist = headlines.split("\r")
+    meta['Title'] = None
+    for line in linelist:
       match = re.search('\{.+\[(.+)\]\}(.+)\{.+\[(.+)\]\}', line)
       if match:
         lang_code = match.group(1)
@@ -75,31 +71,35 @@ class FileMetadataImporter(base.Importer):
       else:
         lang_code = 'en'
         caption = line
+      if meta['Title'] is None:
+        meta['Title'] = caption
       meta['Caption'].append({
         'lang': lang_code,
         'text': caption
       })
     # Add code for descriptions
-    descs = meta.get('description')
-    for line in descs.split('\n'):
-      match = re.search('\{.+\[(.+)\]\}(.+)\{.+\[(.+)\]\}', line)
-      if match:
-        lang_code = match.group(1)
-        desc = match.group(2)
-      else:
-        lang_code = 'en'
-        desc = line
-      foundit = False
-      for ind, cobj in enumerate(meta['Caption']):
-        if cobj['lang'] == lang_code:
-          meta['Caption'][ind]['description'] = desc
-          foundit = True
-      if not foundit:
-        meta['Caption'].append({
-          'lang': lang_code,
-          'text': 'Untitled',
-          'description': desc
-        })
+    descs = meta.get('Description')
+    if descs:
+      for line in descs.split('\n'):
+        match = re.search('\{.+\[(.+)\]\}(.+)\{.+\[(.+)\]\}', line)
+        if match:
+          lang_code = match.group(1)
+          desc = match.group(2)
+        else:
+          lang_code = 'en'
+          desc = line
+        foundit = False
+        for ind, cobj in enumerate(meta['Caption']):
+          if cobj['lang'] == lang_code:
+            meta['Caption'][ind]['description'] = desc
+            foundit = True
+        if not foundit:
+          meta['Caption'].append({
+            'lang': lang_code,
+            'text': 'Untitled',
+            'description': desc
+          })
+    meta['Caption'] = json.dumps(meta['Caption'])  # convert caption metadata to valid json
     # Convert all values in meta dictionary to strings
     for ky in meta.keys():
       meta[ky] = str(meta[ky])
