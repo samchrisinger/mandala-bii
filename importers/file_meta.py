@@ -40,10 +40,10 @@ class FileMetadataImporter(base.Importer):
   def _extract_meta(self, filename, filepath):
     exifinfo = pexi.get_json(filepath)[0]
     meta = {key.split(':').pop(): value for key, value in exifinfo.items()}
-    meta['Filename'] = meta['FileName']
+    meta['Filename'] = meta.get('FileName', '')
     meta['Catalog'] = 'Exif'
-    meta['Height'] = meta['ImageHeight']
-    meta['Width'] = meta['ImageWidth']
+    meta['Height'] = meta.get('ImageHeight', '')
+    meta['Width'] = meta.get('ImageWidth', '')
     meta['ViewRotation'] = '0'
     meta['CollectionId'] = self.collection_id
     meta['Rights'] = meta.get('UsageTerms', '')
@@ -55,14 +55,16 @@ class FileMetadataImporter(base.Importer):
     meta['Category'] = meta.get('SupplementalCategories')
     meta['Author'] = meta.get('Creator')
     meta['CaptureDate'] = meta.get('CreateDate')
+    meta['Model'] = "{} {}".format(meta.get('Make'), meta.get('Model'))
 
     # Find Exif Headline field and use for "captions"
+    meta['Title'] = None if 'Title' not in meta else meta['Title'].strip()
     meta['Caption'] = []
     headlines = meta.get('Headline', '')
     linelist = headlines.split("\n")
     if len(linelist) < len(headlines.split("\r")):
       linelist = headlines.split("\r")
-    meta['Title'] = None
+
     for line in linelist:
       match = re.search('\{.+\[(.+)\]\}(.+)\{.+\[(.+)\]\}', line)
       if match:
@@ -71,12 +73,13 @@ class FileMetadataImporter(base.Importer):
       else:
         lang_code = 'en'
         caption = line
-      if meta['Title'] is None:
+      if not meta['Title']:
         meta['Title'] = caption
       meta['Caption'].append({
         'lang': lang_code,
         'text': caption
       })
+
     # Add code for descriptions
     descs = meta.get('Description')
     if descs:
@@ -100,9 +103,47 @@ class FileMetadataImporter(base.Importer):
             'description': desc
           })
     meta['Caption'] = json.dumps(meta['Caption'])  # convert caption metadata to valid json
-    # Convert all values in meta dictionary to strings
-    for ky in meta.keys():
-      meta[ky] = str(meta[ky])
+    if meta['Title'] == '':
+      meta['Title'] = 'Untitled'
+
+    # Deal with Kmaps (SubjectCode gets turned into an array from semicolons by exiftool but other kmap fields do not)
+    if 'SubjectCode' in meta:
+      meta['SubjectCode'] = json.dumps(meta['SubjectCode'])
+
+    if 'SubjectReference' in meta:
+      meta['SubjectReference'] = json.dumps(meta['SubjectReference'])
+
+    if 'IntellectualGenre' in meta:
+      meta['IntellectualGenre'] = json.dumps(meta['IntellectualGenre'].split(';'))
+
+    # Location: Bridge tool shows just "Sub-location" but Exiftool exports both "Location" and "Sub-location"
+    if 'Sub-location' in meta:
+      meta['Sub-location'] = json.dumps(meta['Sub-location'].split(';'))
+
+    if 'Location' in meta:
+      meta['Location'] = json.dumps(meta['Location'].split(';'))
+    elif 'Sub-location' in meta:
+      meta['Location'] = meta['Sub-location']
+
+    if 'Source' in meta:
+      meta['Source'] = json.dumps(meta['Source'].split(';'))
+
+    if 'ImageCreatorID' in meta:
+      meta['ImageCreatorID'] = meta['ImageCreatorID'].split(';') if isinstance(meta['ImageCreatorID'], str) \
+        else meta['ImageCreatorID']
+      meta['ImageCreatorID'] = json.dumps(meta['ImageCreatorID'])
+
+    if 'ImageCreatorName' in meta:
+      meta['ImageCreatorName'] = meta['ImageCreatorName'].split(';') if isinstance(meta['ImageCreatorName'], str) \
+        else meta['ImageCreatorName']
+      meta['ImageCreatorName'] = json.dumps(meta['ImageCreatorName'])
+
+    # Convert all values in meta dictionary to strings (ndg added mistakenly, leaving temporarily)
+    # for ky in meta.keys():
+    #   meta[ky] = str(meta[ky])
+    with open('../logs/{}.json'.format(meta['Filename']), 'w') as jout:
+      jout.write(json.dumps(meta))
+
     return meta
 
   def _run_one(self, filepath):
