@@ -3,6 +3,7 @@ import os
 import re
 import requests
 import pyexifinfo as pexi
+from datetime import date
 
 from . import base
 
@@ -38,6 +39,7 @@ class FileMetadataImporter(base.Importer):
       ))
 
   def _extract_meta(self, filename, filepath):
+    today = date.today()
     exifinfo = pexi.get_json(filepath)[0]
     meta = {key.split(':').pop(): value for key, value in exifinfo.items()}
     meta['Filename'] = meta.get('FileName', '')
@@ -56,6 +58,9 @@ class FileMetadataImporter(base.Importer):
     meta['Author'] = meta.get('Creator')
     meta['CaptureDate'] = meta.get('CreateDate')
     meta['Model'] = "{} {}".format(meta.get('Make'), meta.get('Model'))
+    meta['ImageNotes'] = "<p>Imported by Mandala Bulk Image Importer reading " \
+                         "image’s Exif metadata on {}.<p>".format(today.strftime("%B %d, %Y"))
+    meta['AdminNotes'] = meta.get('Instructions', '')
 
     # Find Exif Headline field and use for "captions"
     meta['Title'] = None if 'Title' not in meta else meta['Title'].strip()
@@ -137,12 +142,6 @@ class FileMetadataImporter(base.Importer):
       meta['ImageCreatorName'] = meta['ImageCreatorName'].split(';') if isinstance(meta['ImageCreatorName'], str) \
         else meta['ImageCreatorName']
       meta['ImageCreatorName'] = json.dumps(meta['ImageCreatorName'])
-
-    # Convert all values in meta dictionary to strings (ndg added mistakenly, leaving temporarily)
-    # for ky in meta.keys():
-    #   meta[ky] = str(meta[ky])
-    with open('../logs/{}.json'.format(meta['Filename']), 'w') as jout:
-      jout.write(json.dumps(meta))
 
     return meta
 
