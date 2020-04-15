@@ -7,9 +7,10 @@ import rawpy
 import imageio
 from subprocess import call
 import ftputil
-
 import urllib3
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+LOG_DIR = os.path.join(os.getcwd(), 'logs')
 
 def _memoize_find_file(func):
   index = {}
@@ -31,8 +32,9 @@ class Importer(object):
     self.images_path = kwargs['images_path']
     self.collection_id = kwargs.get('collection_id', '0')
     self.logfile = kwargs.get('logfile')
-    if self.logfile:
-      logging.basicConfig(filename=self.logfile, level=logging.DEBUG)
+    self.quiet = kwargs.get('quiet', False)
+    if self.logfile and not self.quiet:
+      logging.basicConfig(filename=os.path.join(LOG_DIR, self.logfile), level=logging.DEBUG)
     self.verbose = kwargs.get('verbose', False)
     self.convert = kwargs.get('convert', True)
     self.convert_with = kwargs.get('convert_with', 'Python')
@@ -48,7 +50,7 @@ class Importer(object):
     self.reverse = False
 
   def _log(self, level, msg):
-    if self.verbose:
+    if self.verbose and not self.quiet:
       print(msg)
     if self.logfile:
       if not level in ('info', 'debug', 'warning'):

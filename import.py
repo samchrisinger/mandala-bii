@@ -1,6 +1,6 @@
 import argparse
 from datetime import datetime
-from importers import mediapro, audit, file_meta, img_repair
+from importers import mediapro, audit, file_meta, img_repair, meta_repair
 
 now = datetime.now()
 nows = now.strftime('%Y-%m-%d_%H-%M-%S')
@@ -20,8 +20,10 @@ parser.add_argument('-c', '--cookie', required=True,
                     help='The Cookie header to pass to the Drupal server.')
 parser.add_argument('-cid', '--collection_id',
                     help='The Collection ID to import into.')
-parser.add_argument('-l', '--logfile', default='../logs/bii_{}.log'.format(nows),
+parser.add_argument('-l', '--logfile', default='bii_{}.log'.format(nows),
                     help='Log progress to a file.')
+parser.add_argument('-q', '--quiet', default=False, action='store_true',
+                    help='Suppress logging.')
 parser.add_argument('-v', '--verbose', default=False, action='store_true',
                     help='Prints progress to stdout.')
 parser.add_argument('-cv', '--convert', default=False, action='store_true',

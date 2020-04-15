@@ -1,3 +1,5 @@
 importers/__pycache__
 tmp
 *.log
+logs/*.log
+logs/*.json

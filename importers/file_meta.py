@@ -7,6 +7,27 @@ from datetime import date
 
 from . import base
 
+
+def _process_desc_langs(desclines):
+  linelist = desclines.split("\n")
+  if len(linelist) < len(desclines.split("\r")):
+    linelist = desclines.split("\r")
+  desclist = []
+  for line in linelist:
+    match = re.search('\{.+\[(.+)\]\}(.+)\{.+\[(.+)\]\}', line)
+    if match:
+      lang_code = match.group(1)
+      desc = match.group(2)
+    else:
+      lang_code = 'en'
+      desc = line
+    desclist.append({
+      'lang': lang_code,
+      'text': desc
+    })
+  return desclist
+
+
 class FileMetadataImporter(base.Importer):
 
   def _do_import(self, doc, filepath):
@@ -20,8 +41,14 @@ class FileMetadataImporter(base.Importer):
     headers = {
       'Cookie': self.cookie
     }
+
     # Strip out empty fields (??)
     mdata = {key: d for key, d in doc.items() if key and d}
+
+    if self.verbose:
+      jfnm = "{}_{}.json".format(mdata['Filename'].split('.').pop(0), date.today())
+      with open(os.path.join(os.getcwd(), 'logs', jfnm), 'w') as jout:
+        jout.write(json.dumps(mdata))
 
     res = requests.post(self.url, files=files, headers=headers, data=mdata, verify=False)
     if res.status_code != requests.codes.ok:
@@ -64,52 +91,31 @@ class FileMetadataImporter(base.Importer):
 
     # Find Exif Headline field and use for "captions"
     meta['Title'] = None if 'Title' not in meta else meta['Title'].strip()
-    meta['Caption'] = []
-    headlines = meta.get('Headline', '')
-    linelist = headlines.split("\n")
-    if len(linelist) < len(headlines.split("\r")):
-      linelist = headlines.split("\r")
+    meta['Caption'] = _process_desc_langs(meta.get('Headline', ''))
+    if not meta['Title']:
+      meta['Title'] = meta['Caption'][0]['text']
 
-    for line in linelist:
-      match = re.search('\{.+\[(.+)\]\}(.+)\{.+\[(.+)\]\}', line)
-      if match:
-        lang_code = match.group(1)
-        caption = match.group(2)
-      else:
-        lang_code = 'en'
-        caption = line
-      if not meta['Title']:
-        meta['Title'] = caption
-      meta['Caption'].append({
-        'lang': lang_code,
-        'text': caption
-      })
+    # Get descriptions from description field and add to captions matched by language
+    descs = _process_desc_langs(meta.get('Description'))
+    for desc in descs:
+      foundit = False
+      for ind, cobj in enumerate(meta['Caption']):
+        if cobj['lang'] == desc['lang']:
+          meta['Caption'][ind]['description'] = desc['text']
+          foundit = True
+      if not foundit:
+        meta['Caption'].append({
+          'lang': desc['lang'],
+          'text': 'Untitled',
+          'description': desc['text']
+        })
 
-    # Add code for descriptions
-    descs = meta.get('Description')
-    if descs:
-      for line in descs.split('\n'):
-        match = re.search('\{.+\[(.+)\]\}(.+)\{.+\[(.+)\]\}', line)
-        if match:
-          lang_code = match.group(1)
-          desc = match.group(2)
-        else:
-          lang_code = 'en'
-          desc = line
-        foundit = False
-        for ind, cobj in enumerate(meta['Caption']):
-          if cobj['lang'] == lang_code:
-            meta['Caption'][ind]['description'] = desc
-            foundit = True
-        if not foundit:
-          meta['Caption'].append({
-            'lang': lang_code,
-            'text': 'Untitled',
-            'description': desc
-          })
-    meta['Caption'] = json.dumps(meta['Caption'])  # convert caption metadata to valid json
-    if meta['Title'] == '':
-      meta['Title'] = 'Untitled'
+    # Deal with when title is empty
+    if not meta['Title'] or meta['Title'] == '':
+      meta['Title'] = meta['Caption'][0]['text'] if meta['Caption'][0]['text'] else 'Untitled'
+
+    # Convert caption metadata to valid json
+    meta['Caption'] = json.dumps(meta['Caption'])
 
     # Deal with Kmaps (SubjectCode gets turned into an array from semicolons by exiftool but other kmap fields do not)
     if 'SubjectCode' in meta:
