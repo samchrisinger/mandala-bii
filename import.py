@@ -1,9 +1,5 @@
 import argparse
-from datetime import datetime
 from importers import mediapro, audit, file_meta, img_repair, meta_repair
-
-now = datetime.now()
-nows = now.strftime('%Y-%m-%d_%H-%M-%S')
 
 parser = argparse.ArgumentParser(description='Bulk import images into the Mandala images app.')
 parser.add_argument('-s', '--source', choices=['MediaPro', 'Encoded', 'Audit', 'Repair', 'MetaRepair'], required=True,
@@ -20,10 +16,10 @@ parser.add_argument('-c', '--cookie', required=True,
                     help='The Cookie header to pass to the Drupal server.')
 parser.add_argument('-cid', '--collection_id',
                     help='The Collection ID to import into.')
-parser.add_argument('-l', '--logfile', default='bii_{}.log'.format(nows),
+parser.add_argument('-l', '--log_to_file', default=False, action='store_true',
                     help='Log progress to a file.')
-parser.add_argument('-q', '--quiet', default=False, action='store_true',
-                    help='Suppress logging.')
+parser.add_argument('-lm', '--log_metadata', default=False, action='store_true',
+                    help='Log metadata to a file.')
 parser.add_argument('-v', '--verbose', default=False, action='store_true',
                     help='Prints progress to stdout.')
 parser.add_argument('-cv', '--convert', default=False, action='store_true',

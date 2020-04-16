@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 import shutil
 import requests
 import logging
@@ -11,6 +12,8 @@ import urllib3
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 LOG_DIR = os.path.join(os.getcwd(), 'logs')
+now = datetime.now()
+nows = now.strftime('%Y-%m-%d_%H-%M-%S')
 
 def _memoize_find_file(func):
   index = {}
@@ -31,10 +34,11 @@ class Importer(object):
     self.cookie = kwargs['cookie']
     self.images_path = kwargs['images_path']
     self.collection_id = kwargs.get('collection_id', '0')
-    self.logfile = kwargs.get('logfile')
-    self.quiet = kwargs.get('quiet', False)
-    if self.logfile and not self.quiet:
-      logging.basicConfig(filename=os.path.join(LOG_DIR, self.logfile), level=logging.DEBUG)
+    self.log_to_file = kwargs.get('log_to_file')
+    self.log_metadata = kwargs.get('log_metadata')
+    if self.log_to_file:
+      logfile = 'bii_{}.log'.format(nows)
+      logging.basicConfig(filename=os.path.join(LOG_DIR, logfile), level=logging.DEBUG)
     self.verbose = kwargs.get('verbose', False)
     self.convert = kwargs.get('convert', True)
     self.convert_with = kwargs.get('convert_with', 'Python')
@@ -50,11 +54,9 @@ class Importer(object):
     self.reverse = False
 
   def _log(self, level, msg):
-    if self.quiet:
-      return
     if self.verbose:
       print(msg)
-    if self.logfile:
+    if self.log_to_file:
       if not level in ('info', 'debug', 'warning'):
         return
       else:
