@@ -45,7 +45,7 @@ class FileMetadataImporter(base.Importer):
     # Strip out empty fields (??)
     mdata = {key: d for key, d in doc.items() if key and d}
 
-    if self.verbose:
+    if self.verbose and not self.quiet:
       jfnm = "{}_{}.json".format(mdata['Filename'].split('.').pop(0), date.today())
       with open(os.path.join(os.getcwd(), 'logs', jfnm), 'w') as jout:
         jout.write(json.dumps(mdata))
