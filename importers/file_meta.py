@@ -85,9 +85,10 @@ class FileMetadataImporter(base.Importer):
     meta['Author'] = meta.get('Creator')
     meta['CaptureDate'] = meta.get('CreateDate')
     meta['Model'] = "{} {}".format(meta.get('Make'), meta.get('Model'))
-    meta['ImageNotes'] = "<p>Imported by Mandala Bulk Image Importer reading " \
-                         "image’s Exif metadata on {}.<p>".format(today.strftime("%B %d, %Y"))
-    meta['AdminNotes'] = meta.get('Instructions', '')
+    if meta.get('Instructions', False):
+      meta['AdminNotes'] = meta.get('Instructions')
+    meta['TechNotes'] = "<p>Imported by Mandala Bulk Image Importer reading " \
+                        "image’s Exif metadata on {}.<p>".format(today.strftime("%B %d, %Y"))
 
     # Find Exif Headline field and use for "captions"
     meta['Title'] = None if 'Title' not in meta else meta['Title'].strip()
