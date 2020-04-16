@@ -50,7 +50,9 @@ class Importer(object):
     self.reverse = False
 
   def _log(self, level, msg):
-    if self.verbose and not self.quiet:
+    if self.quiet:
+      return
+    if self.verbose:
       print(msg)
     if self.logfile:
       if not level in ('info', 'debug', 'warning'):
